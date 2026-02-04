@@ -1,0 +1,9 @@
+.env
+*.pyc
+__pycache__/
+*.log
+*.txt
+!requirements.txt
+!README.md
+email_log_*.txt
+recipients_backup.xlsx
