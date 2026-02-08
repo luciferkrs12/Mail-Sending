@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-DaKshaa T26 Event Invitation Email Sender
+
 Reads recipient details from Excel and sends HTML-formatted invitations via SMTP
 """
 
@@ -17,6 +17,8 @@ from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 import time
+from PIL import Image, ImageDraw, ImageFont
+import shutil
 
 # Load environment variables from .env file if it exists
 load_dotenv()
@@ -31,8 +33,7 @@ def load_logos_for_email():
     """
     logos = {}
     configs = [
-        ('dakshaa_logo', 'eventlogio_nobg.png', 'png'),
-        ('ksrct_logo', 'ksrct_logo_nobg.png', 'png'),
+        ('sm_logo', 'sm_logo_small.png', 'png'),
     ]
     for cid, filename, subtype in configs:
         path = SCRIPT_DIR / filename
@@ -44,141 +45,145 @@ def load_logos_for_email():
     return logos
 
 
-def get_html_template():
-    """Generate HTML email template."""
+def get_html_template(name="Volunteer"):
+    """Generate a premium HTML email template with WhatsApp group integration."""
 
-    return """
+    return f"""
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>DaKshaa T26 | National-Level Techno-Cultural Fest</title>
+<meta charset="UTF-8">
+<title>🎉 Congratulations – Welcome to SM</title>
 </head>
 
-<body style="margin:0; padding:0; background-color:#edf2f7; font-family: Arial, Helvetica, sans-serif;">
+<body style="margin:0;padding:0;background:#0f2027;font-family:'Segoe UI',Arial,sans-serif;">
 
-<table width="100%" cellpadding="0" cellspacing="0" style="padding:25px 15px;">
+<!-- PREVIEW TEXT (INBOX LINE) -->
+<div style="display:none;max-height:0;overflow:hidden;">
+🎉 Congratulations {name}! Welcome to the SM Volunteers Forum
+</div>
+
+<!-- HERO BLAST -->
+<table width="100%" cellpadding="0" cellspacing="0">
   <tr>
-    <td align="center">
+    <td align="center" style="
+      background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+      padding:80px 15px;
+      color:#ffffff;
+    ">
+      <h1 style="
+        font-size:42px;
+        margin:0;
+        letter-spacing:2px;
+        text-transform:uppercase;
+      ">
+        🎉 CONGRATULATIONS 🎉
+      </h1>
 
-      <table width="650" cellpadding="0" cellspacing="0"
-             style="background-color:#ffffff; border-radius:10px; overflow:hidden;">
+      <p style="font-size:18px;margin-top:15px;">
+        Welcome to the SM Volunteers Forum
+      </p>
+    </td>
+  </tr>
+</table>
 
-        <!-- HERO HEADER -->
+<!-- CONTENT CARD -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f8;">
+  <tr>
+    <td align="center" style="padding:40px 15px;">
+
+      <table width="100%" cellpadding="0" cellspacing="0"
+        style="
+          max-width:620px;
+          background:#ffffff;
+          border-radius:18px;
+          box-shadow:0 18px 45px rgba(0,0,0,0.25);
+        ">
+
+        <!-- SM LOGO -->
         <tr>
-          <td style="background-color:#0b3c5d; padding:30px 25px; text-align:center;">
-            <img src="cid:dakshaa_logo"
-                 alt="DaKshaa T26 Logo"
-                 style="max-width:220px; height:auto; margin-bottom:18px;">
-            <h1 style="margin:0; font-size:28px; color:#ffffff;">
-              DaKshaa T26
-            </h1>
-            <p style="margin:8px 0 0; font-size:15px; color:#dbe9f5;">
-              National-Level Techno-Cultural Fest
-            </p>
-            <p style="margin:6px 0 0; font-size:14px; color:#bcd6ec;">
-              12<sup>th</sup> – 14<sup>th</sup> February 2026 | KSRCT
-            </p>
+          <td align="center" style="padding-top:35px;">
+            <img src="sm_logo.png"
+                 alt="SM Logo"
+                 width="90"
+                 style="display:block;">
           </td>
         </tr>
 
-        <!-- CONTENT -->
+        <!-- BODY -->
         <tr>
-          <td style="padding:35px; color:#333333; font-size:15px; line-height:1.75;">
+          <td style="padding:35px 40px;color:#222222;">
 
-            <p>Hey There 👋</p>
-
-            <p>
-              We’re excited to invite you to <strong>DaKshaa T26</strong>, a
-              <strong>National-Level Techno-Cultural Fest</strong> organized by
-              <strong>K. S. Rangasamy College of Technology (Autonomous), Tiruchengode</strong>.
+            <p style="font-size:16px;">
+              Dear <strong>{name}</strong>,
             </p>
 
-            <!-- OVERVIEW -->
-            <h3 style="color:#0b3c5d; margin-top:25px;">Event Overview</h3>
-
-            <p>
-              DaKshaa T26 brings together students from across the country for
-              three high-energy days of innovation, creativity, competition, and celebration.
-              The fest blends cutting-edge technology with cultural expression,
-              creating a platform where ideas turn into real impact.
+            <p style="font-size:16px;line-height:1.8;">
+              We are delighted to inform you that you have
+              <strong>successfully cleared the SM interview</strong>.
+              Your dedication, confidence, and commitment truly stood out.
             </p>
 
-            <p>
-              The fest features <strong>20+ technical events</strong>,
-              <strong>15+ hands-on workshops</strong>, <strong>8+ hackathons</strong>,
-              national conferences, tech talks by industry leaders,
-              startup pitching sessions, cultural shows, and sports events.
+            <p style="font-size:16px;line-height:1.8;">
+              You are now an <strong>official member of the SM Team</strong> and
+              eligible to participate in all
+              <strong>SM events, initiatives, and activities</strong>.
             </p>
 
-            <p>
-              With flagship events like <strong>Neura Hack 2.0 (36-hour hackathon)</strong>
-              and <strong>VibeCode'26</strong>, and a
-              <strong>prize pool worth ₹10 Lakhs</strong>,
-              DaKshaa T26 is set to be one of the biggest student festivals of 2026.
+            <!-- HIGHLIGHT -->
+            <div style="
+              margin:30px 0;
+              padding:22px;
+              background:linear-gradient(135deg,#e3f2fd,#fce4ec);
+              border-radius:14px;
+              text-align:center;
+              font-weight:bold;
+              font-size:15px;
+            ">
+              ✨ Welcome to the SM Family ✨
+            </div>
+
+            <!-- WHATSAPP INFO -->
+            <p style="font-size:16px;font-weight:bold;">
+              📲 Kindly Join the Official SM WhatsApp Group
             </p>
 
-            <!-- EVENT INFO -->
-            <table width="100%" cellpadding="0" cellspacing="0"
-                   style="background-color:#f5f9fd; border-left:5px solid #0b3c5d; margin:30px 0;">
-              <tr>
-                <td style="padding:18px;">
-                  <strong>📅 Dates:</strong> 12<sup>th</sup> – 14<sup>th</sup> February 2026<br>
-                  <strong>📍 Venue:</strong> K. S. Rangasamy College of Technology, Tamil Nadu
-                </td>
-              </tr>
-            </table>
-
-            <!-- CTA BUTTONS -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="margin:35px 0;">
-              <tr>
-                <td align="center">
-
-                  <!-- Primary CTA -->
-                  <a href="https://dakshaa.ksrct.ac.in"
-                     style="background-color:#0b3c5d; color:#ffffff;
-                            padding:15px 34px; text-decoration:none;
-                            font-size:15px; border-radius:30px;
-                            display:inline-block; margin:6px;">
-                    Explore Events &amp; Register
-                  </a>
-
-                  <!-- Secondary CTA -->
-                  <a href="https://dakshaa.ksrct.ac.in/assets/Brochure-BKLLtMz-.pdf"
-                     style="background-color:#ffffff; color:#0b3c5d;
-                            padding:13px 32px; text-decoration:none;
-                            font-size:14px; border-radius:30px;
-                            border:2px solid #0b3c5d;
-                            display:inline-block; margin:6px;">
-                    Download Brochure (PDF)
-                  </a>
-
-                </td>
-              </tr>
-            </table>
-
-            <p>
-              Get ready to learn, compete, and celebrate.
-              We can’t wait to see you at <strong>DaKshaa T26</strong>!
+            <p style="font-size:14px;line-height:1.7;">
+              All upcoming information, announcements, and updates
+              will be shared <strong>only through the official WhatsApp group</strong>.
+              Kindly ensure that you join the group to stay informed.
             </p>
 
-            <p>
-              Cheers,<br>
-              <strong>Team DaKshaa T26</strong>
+            <div style="text-align:center;margin:35px 0;">
+              <a href="https://chat.whatsapp.com/CJeFwL5abHc8VkqeAa3n1v"
+                 style="
+                   background:linear-gradient(135deg,#25D366,#1ebe5d);
+                   color:#ffffff;
+                   padding:16px 38px;
+                   text-decoration:none;
+                   font-size:16px;
+                   font-weight:bold;
+                   border-radius:50px;
+                   display:inline-block;
+                 ">
+                🚀 Join WhatsApp Group
+              </a>
+            </div>
+
+            <p style="font-size:13px;color:#666;">
+              ⚠️ Joining the WhatsApp group is <strong>mandatory</strong>.
             </p>
 
-          </td>
-        </tr>
-
-        <!-- COLLEGE LOGO FOOTER -->
-        <tr>
-          <td style="background-color:#f1f1f1; text-align:center; padding:18px;">
-            <img src="cid:ksrct_logo"
-                 alt="KSRCT Logo"
-                 style="max-width:160px; height:auto;">
-            <p style="margin:8px 0 0; font-size:12px; color:#666666;">
-              K. S. Rangasamy College of Technology
+            <p style="margin-top:35px;font-size:15px;">
+              Achievements are earned through dedication and hard work.
+              Congratulations on this proud milestone!
             </p>
+
+            <p style="margin-top:20px;">
+              Warm regards,<br>
+              <strong>SM Team</strong>
+            </p>
+
           </td>
         </tr>
 
@@ -192,21 +197,38 @@ def get_html_template():
 </html>
 """
 
-
 def read_recipients_from_excel(file_path):
-    """Read recipient emails from Excel file (only emails)"""
+    """Read recipient details from Excel file (Email and optional Name)"""
     recipients = []
     
     try:
         workbook = load_workbook(filename=file_path, read_only=True)
         sheet = workbook.active
         
+        # Get headers
+        header_row = next(sheet.iter_rows(min_row=1, max_row=1, values_only=True))
+        email_idx = 0
+        name_idx = -1
+        
+        # Try to find columns by header names
+        for i, val in enumerate(header_row):
+            if val:
+                val_lower = str(val).lower()
+                if 'email' in val_lower:
+                    email_idx = i
+                elif 'name' in val_lower:
+                    name_idx = i
+        
         # Skip header row and read data
         for row in sheet.iter_rows(min_row=2, values_only=True):
-            if row[0]:  # Check if email exists
-                email = str(row[0]).strip()
+            if len(row) > email_idx and row[email_idx]:
+                email = str(row[email_idx]).strip()
+                name = "Volunteer"
+                if name_idx != -1 and len(row) > name_idx and row[name_idx]:
+                    name = str(row[name_idx]).strip()
+                
                 if email:
-                    recipients.append(email)
+                    recipients.append({'email': email, 'name': name})
         
         workbook.close()
         return recipients
@@ -226,8 +248,8 @@ def get_smtp_config():
     # Try to get from environment variables first
     config['server'] = "smtp.gmail.com"
     config['port'] = "587"
-    config['email'] = "dakshaa@ksrct.ac.in"  # Change to your Gmail address
-    config['password'] = "afqx fcmf qsvo iqyv"  # Change to your Gmail app password
+    config['email'] = "smvolunteers@ksrct.ac.in"  # Change to your Gmail address
+    config['password'] = "mxod vqth nulr ywoh"  # gmail app password
     
     # If not in environment, prompt user
     if not all([config['server'], config['port'], config['email'], config['password']]):
@@ -254,36 +276,317 @@ def get_smtp_config():
     return config
 
 
-def send_single_email(email, smtp_config, logos, idx, total):
+def generate_invitation_image(name, template_path="Congratulations.png", output_dir="generated_invites"):
+    """
+    Generate a personalized image with the recipient's name drawn on the template.
+    Returns the path to the generated image file.
+    """
+    try:
+        # Create output directory if it doesn't exist
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Sanitize filename
+        safe_name = "".join([c for c in name if c.isalnum() or c in (' ', '_', '-')]).strip()
+        if not safe_name:
+            safe_name = "Guest"
+        output_filename = f"Invitation_{safe_name}.png"
+        output_path = os.path.join(output_dir, output_filename)
+        
+        # Check if template exists
+        if not os.path.exists(template_path):
+            print(f"⚠️ Template '{template_path}' not found! Skipping image generation.")
+            return None
+            
+        img = Image.open(template_path)
+        draw = ImageDraw.Draw(img)
+        width, height = img.size
+
+        # --- PATCHING LOGIC TO REMOVE "NAME" ---
+        # Strategy: Tile a clean section of the ribbon to cover the center area.
+        # This prevents the blurry look of stretching.
+        
+        y_ribbon_start = int(height * 0.69)
+        y_ribbon_end = int(height * 0.77)
+        ribbon_height = y_ribbon_end - y_ribbon_start
+        
+        # Target area to cover (Center where "NAME" is)
+        target_x_start = int(width * 0.38) # Narrowed slightly to be safe
+        target_x_end = int(width * 0.62)
+        target_width = target_x_end - target_x_start
+        
+        # Source area (Clean ribbon on left)
+        src_x_start = int(width * 0.20)
+        src_x_end = int(width * 0.28) # Take a smaller, safer clean chunk
+        src_width = src_x_end - src_x_start
+        
+        clean_slice = img.crop((src_x_start, y_ribbon_start, src_x_end, y_ribbon_end))
+        
+        # Tile the slice to cover the target width
+        current_x = target_x_start
+        while current_x < target_x_end:
+            paste_width = min(src_width, target_x_end - current_x)
+            if paste_width < src_width:
+                # Crop the last piece if needed
+                patch = clean_slice.crop((0, 0, paste_width, ribbon_height))
+            else:
+                patch = clean_slice
+            
+            img.paste(patch, (current_x, y_ribbon_start))
+            current_x += src_width
+        
+        # --- DRAWING TEXT ---
+        
+        name = name.upper() # FORCE UPPERCASE
+        
+        # Color: Dark Maroon
+        text_color = (60, 0, 0) 
+        
+        # Max width for text 
+        max_text_width = int(width * 0.55) 
+        
+        # Dynamic Scaler
+        current_font_size = int(width * 0.06) # Start bigger
+        min_font_size = int(width * 0.03)
+        
+        # Load Font - Switch to Serif (Times New Roman) for premium look
+        font_names = ["timesbd.ttf", "georgiab.ttf", "arialbd.ttf"]
+        font_path = None
+        for fn in font_names:
+            possible_path = f"C:/Windows/Fonts/{fn}"
+            if os.path.exists(possible_path):
+                font_path = possible_path
+                break
+        
+        if not font_path:
+             font_path = "C:/Windows/Fonts/arial.ttf"
+
+        while current_font_size > min_font_size:
+            try:
+                font = ImageFont.truetype(font_path, current_font_size)
+            except OSError:
+                font = ImageFont.load_default()
+                break
+
+            if hasattr(draw, "textbbox"):
+                bbox = draw.textbbox((0, 0), name, font=font)
+                text_w = bbox[2] - bbox[0]
+                text_h = bbox[3] - bbox[1]
+            else:
+                text_w, text_h = draw.textsize(name, font=font)
+                
+            if text_w <= max_text_width:
+                break 
+            
+            current_font_size -= 2
+        
+        # Calculate centered position
+        x = (width - text_w) / 2
+        
+        # Center vertically in the ribbon patch
+        ribbon_middle = y_ribbon_start + (ribbon_height / 2)
+        # Adjust vertical center slightly for font baseline
+        y = ribbon_middle - (text_h / 2) - (text_h * 0.15) 
+
+        # Draw text
+        draw.text((x, y), name, font=font, fill=text_color)
+
+        img.save(output_path)
+        return output_path
+
+    except Exception as e:
+        print(f"❌ Error generating image for {name}: {str(e)}")
+        return None
+
+
+def send_single_email(recipient, smtp_config, logos, idx, total):
     """Send a single email to one recipient (thread-safe)."""
+    email = recipient['email']
+    name = recipient['name'] 
+    
     try:
         # Create new connection for this thread
-        server = smtplib.SMTP(smtp_config['server'], smtp_config['port'], timeout=30)
+        server = smtplib.SMTP(smtp_config['server'], smtp_config['port'], timeout=90)
         server.starttls()
         server.login(smtp_config['email'], smtp_config['password'])
         
-        # Create message
-        msg = MIMEMultipart('related')
-        msg['Subject'] = "You're Invited to DaKshaa T26 – National-Level Techno-Cultural Fest | KSRCT"
-        msg['From'] = f"Team DaKshaa T26 <{smtp_config['email']}>"
-        msg['To'] = email
+        # Prepare HTML Content using CSS to mimic the design (No image generation)
+        # Colors picked from the original design
         
-        html_content = get_html_template()
+        html_content = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Congratulations</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Arial', sans-serif;">
+    
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                
+                <!-- Main Card (Restored with Border & Background) -->
+                <div style="
+                    max-width: 600px; 
+                    margin: 0 auto; 
+                    background-color: #420000; /* Card Background */
+                    border: 2px solid #ffd700; /* Gold Border */
+                    border-radius: 15px;
+                    padding: 40px 20px; 
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+                    text-align: center;
+                    color: #ffffff;
+                ">
+                    
+                    <!-- Top Gold Decoration Line -->
+                    <div style="height: 2px; background: #ffd700; margin-bottom: 30px;"></div>
+
+                    <!-- Congratulations Text -->
+                    <h1 style="
+                        font-family: 'Times New Roman', Times, serif; 
+                        color: #ffffff; 
+                        font-size: 36px; 
+                        margin: 0 0 10px 0; 
+                        font-style: italic;
+                        font-weight: normal;
+                        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+                    ">
+                        Congratulations
+                    </h1>
+
+                    <h2 style="
+                        font-family: 'Arial', sans-serif;
+                        color: #ffc107; 
+                        font-size: 20px; 
+                        margin: 0 0 35px 0; 
+                        text-transform: uppercase; 
+                        letter-spacing: 2px;
+                        line-height: 1.4;
+                    ">
+                        WELCOME TO OUR<br>
+                        <span style="color: #ffd700; font-size: 24px; font-weight: bold;">SM VOLUNTEERS FORUM</span>
+                    </h2>
+
+                    <!-- Logo (Fixed Round Shape with Container) -->
+                    <div style="margin: 0 auto 25px auto; width: 160px; height: 160px; border-radius: 50%; border: 3px solid #b8860b; overflow: hidden; background-color: transparent;">
+                        <img src="cid:sm_logo" alt="SM Volunteers" style="display: block; width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+
+                    <!-- Name Display (Transparent with Gold Border) -->
+                    <div style="
+                        background-color: transparent;
+                        border: 2px solid #ffd700;
+                        padding: 15px 0;
+                        margin: 30px auto;
+                        width: 80%;
+                        border-radius: 8px;
+                        box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+                    ">
+                        <span style="
+                            font-family: 'Arial Black', 'Arial Bold', sans-serif;
+                            font-size: 30px;
+                            color: #ffd700; /* Gold Text */
+                            text-transform: uppercase;
+                            letter-spacing: 2px;
+                            display: block;
+                            font-weight: 900;
+                            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+                        ">
+                            {name.upper()}
+                        </span>
+                    </div>
+
+                    <!-- Main Body Content -->
+                    <div style="text-align: left; padding: 0 20px; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 16px; line-height: 1.6;">
+                        <p>
+                            We are delighted to inform you that you have <strong>successfully cleared the SM interview</strong>. 
+                            Your dedication, confidence, and commitment truly stood out.
+                        </p>
+                        <p>
+                            You are now an <strong>official member of the SM Team</strong> and eligible to participate in all 
+                            <strong>SM events, initiatives, and activities</strong>.
+                        </p>
+                        <p style="margin-top: 25px; font-size: 14px; color: #cccccc;">
+                            All upcoming information, announcements, and updates will be shared 
+                            <strong>only through the official WhatsApp group</strong>. 
+                            Kindly ensure that you join the group to stay informed.
+                        </p>
+                    </div>
+
+                    <!-- Footer Text -->
+                    <p style="
+                        font-family: 'Georgia', serif;
+                        font-size: 15px;
+                        color: #cccccc;
+                        line-height: 1.6;
+                        margin-top: 35px;
+                        font-style: italic;
+                        padding: 0 20px;
+                    ">
+                        Achievements are earned through dedication and hard work.<br>
+                        Congratulations on this proud milestone!
+                    </p>
+                    
+                    <!-- WhatsApp Button (Solid Green) -->
+                    <div style="margin-top: 40px; margin-bottom: 10px;">
+                        <a href="https://chat.whatsapp.com/CJeFwL5abHc8VkqeAa3n1v" style="
+                            background-color: #25D366; /* Solid Green */
+                            color: white;
+                            padding: 12px 30px;
+                            text-decoration: none;
+                            border-radius: 25px;
+                            font-family: sans-serif;
+                            font-weight: bold;
+                            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+                            display: inline-block;
+                        ">
+                            Join WhatsApp Group
+                        </a>
+                    </div>
+
+                </div>
+                
+                <p style="color: #666666; font-size: 11px; margin-top: 20px; font-family: sans-serif;">
+                    KSRCT SM Volunteers
+                </p>
+
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+        """
+        
+        # Determine logos to attach
+        # We need 'sm_logo' for the HTML cid:sm_logo
+        
+        msg = MIMEMultipart('related')
+        msg['Subject'] = f"Congratulations {name}! - SM Volunteers"
+        msg['From'] = f"SM Official <{smtp_config['email']}>"
+        msg['To'] = email
+
         html_part = MIMEText(html_content, 'html', 'utf-8')
         msg.attach(html_part)
         
-        # Attach inline logos
-        for cid, (payload, subtype) in logos.items():
-            img = MIMEImage(payload, _subtype=subtype)
-            img.add_header('Content-Disposition', 'inline', filename=cid)
-            img.add_header('Content-ID', f'<{cid}>')
-            msg.attach(img)
+        # Attach Inline Logos
+        # We assume load_logos_for_email returns 'sm_logo' key
+        if logos:
+             for cid, (payload, subtype) in logos.items():
+                img = MIMEImage(payload, _subtype=subtype)
+                img.add_header('Content-Disposition', 'inline', filename=cid)
+                img.add_header('Content-ID', f'<{cid}>')
+                msg.attach(img)
+        else:
+            print("⚠️ Warning: Logos not found. Email will be missing images.")
+
+        print(f"✅ [{idx}/{total}] Prepared HTML email for {name}")
         
         # Send email
         server.send_message(msg)
         server.quit()
         
-        print(f"✅ [{idx}/{total}] Sent to {email}")
+        print(f"🚀 [{idx}/{total}] Sent to {email}")
         return {'status': 'success', 'email': email}
         
     except Exception as e:
@@ -325,8 +628,8 @@ def send_invitation_emails(recipients, smtp_config, excel_file):
     
     # Send emails sequentially with delay to avoid spam filters
     print("📬 Sending emails sequentially (slow mode to avoid spam)...\n")
-    for idx, email in enumerate(recipients, 1):
-        result = send_single_email(email, smtp_config, logos, idx, len(recipients))
+    for idx, recipient in enumerate(recipients, 1):
+        result = send_single_email(recipient, smtp_config, logos, idx, len(recipients))
         if result['status'] == 'success':
             successful.append(result['email'])
         else:
@@ -346,7 +649,7 @@ def send_invitation_emails(recipients, smtp_config, excel_file):
 def main():
     """Main function"""
     print("\n" + "=" * 60)
-    print("  DaKshaa T26 - Email Invitation Sender")
+    print("  SM Volunteers - Official Selection Notifier")
     print("  K. S. Rangasamy College of Technology")
     print("=" * 60)
     
@@ -373,7 +676,7 @@ def main():
     # Show preview
     print("\n📋 Preview of recipients:")
     for i, r in enumerate(recipients[:5], 1):
-        print(f"   {i}. {r}")
+        print(f"   {i}. {r['name']} <{r['email']}>")
     if len(recipients) > 5:
         print(f"   ... and {len(recipients) - 5} more")
     
